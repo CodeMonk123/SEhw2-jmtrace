@@ -13,6 +13,7 @@ public class MemoryTraceClassVisitor extends ClassVisitor {
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+
         cv.visit(version, access, name, signature, superName, interfaces);
     }
 
@@ -87,21 +88,30 @@ public class MemoryTraceClassVisitor extends ClassVisitor {
             // Before: [..., objRef] <-
             // After : [..., value] <-
             if (opcode == Opcodes.GETFIELD || opcode == Opcodes.GETSTATIC) {
+                mv.visitInsn(Opcodes.DUP);
+                // [..., objRef] <-
                 mv.visitLdcInsn(owner);
-                // [..., objRef, ownerStringRef, objRef] <-
+                // [..., objRef, objRef, ownerStringRef] <-
                 mv.visitLdcInsn(name);
-                // [..., objRef, ownerStringRef, nameStringRef, objRef] <-
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "traceGetField", "(Ljava/lang/String;Ljava/lang/String;)V", false);
+                // [..., objRef, objRef, ownerStringRef, nameStringRef] <-
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "traceGetField", "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V", false);
                 // [..., objRef] <-
             }
-            //Do not know the value's length, can not get objRef
+            // Write a field
+            // Before: [...,objRef, value] <-
+            // Note: the value here is a index of the value in the constant pool, not the value itself.
+            // After: [...,]<-
             if (opcode == Opcodes.PUTFIELD || opcode == Opcodes.PUTSTATIC) {
                 // [..., objRef, value] <-
+                mv.visitInsn(Opcodes.DUP2);
+                // [..., objRef, value, objRef, value] <-
+                mv.visitInsn(Opcodes.POP);
+                // [..., objRef, value, objRef] <-
                 mv.visitLdcInsn(owner);
-                // [..., objRef, value, ownerStringRef] <-
+                // [..., objRef, value, objRef, ownerStringRef] <-
                 mv.visitLdcInsn(name);
-                // [..., objRef, value, ownerStringRef, nameStringRef] <-
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "tracePutField", "(Ljava/lang/String;Ljava/lang/String;)V", false);
+                // [..., objRef, value, objRef, ownerStringRef, nameStringRef] <-
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "tracePutField", "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V", false);
                 // [..., objRef, value] <-
             }
 
