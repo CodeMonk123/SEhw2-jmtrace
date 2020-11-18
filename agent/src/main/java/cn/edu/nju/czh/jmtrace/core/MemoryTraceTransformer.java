@@ -13,6 +13,11 @@ public class MemoryTraceTransformer implements ClassFileTransformer {
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+
+        if(className.startsWith("java")|| className.startsWith("sun")) {
+            return null;
+        }
+
         ClassReader reader = new ClassReader(classfileBuffer);
         ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS);
         ClassVisitor visitor = new MemoryTraceClassVisitor(writer);

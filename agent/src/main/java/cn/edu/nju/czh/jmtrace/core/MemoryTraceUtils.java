@@ -49,24 +49,25 @@ public class MemoryTraceUtils {
     }
 
 
-    private static StringBuilder generateFieldInfo(String owner, String name) {
+    private static StringBuilder generateFieldInfo(Object objRef, String owner, String name) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(Thread.currentThread().getId());
         stringBuilder.append(" ");
-        stringBuilder.append(toHexString((owner + name).hashCode())).append(" ");
+        stringBuilder.append(toHexString(System.identityHashCode(objRef))).append(" ");
         stringBuilder.append(owner.replace('/', '.')).append('.').append(name);
         return stringBuilder;
     }
 
-    public static void traceGetField(String owner, String name) {
-//        System.out.println("Owner " + owner + " name: " + name);
-        StringBuilder stringBuilder = generateFieldInfo(owner, name);
+
+    public static void traceGetField(Object objRef, String owner, String name) {
+        StringBuilder stringBuilder = generateFieldInfo(objRef, owner, name);
         stringBuilder.insert(0, "R ");
         System.out.println(stringBuilder.toString());
     }
 
-    public static void tracePutField(String owner, String name) {
-        StringBuilder stringBuilder = generateFieldInfo(owner, name);
+
+    public static void tracePutField(Object objRef, String owner, String name) {
+        StringBuilder stringBuilder = generateFieldInfo(objRef, owner, name);
         stringBuilder.insert(0, "W ");
         System.out.println(stringBuilder.toString());
     }
