@@ -114,16 +114,32 @@ public class MemoryTraceClassVisitor extends ClassVisitor {
 
             // Write a field
             // Before: [...,objRef, value] <-
-            // Note: We do not konw the type of the value
+            // value can be category 1 or 2
             // After: [...,]<-
             if (opcode == Opcodes.PUTFIELD) {
-//                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                final Type fieldType = Type.getType(descriptor);
+                if(fieldType.getSize() == 1) {
+                    // value is category 1
+                    mv.visitInsn(Opcodes.DUP2);
+                    // [...,objRef, value, objRef, value] <-
+                    mv.visitInsn(Opcodes.POP);
+                    // [...,objRef, value, objRef] <-
+                } else {
+                    // value is category 2
+                    mv.visitInsn(Opcodes.DUP2_X1);
+                    // [...,value, objRef, value] <-
+                    mv.visitInsn(Opcodes.POP2);
+                    // [...,value, objRef] <-
+                    mv.visitInsn(Opcodes.DUP_X2);
+                    // [...,objRef, value, objRef] <-
+                }
+
                 // [..., objRef, value, objRef] <-
-//                mv.visitLdcInsn(owner);
+                mv.visitLdcInsn(owner);
                 // [..., objRef, value, objRef, ownerStringRef] <-
-//                mv.visitLdcInsn(name);
+                mv.visitLdcInsn(name);
                 // [..., objRef, value, objRef, ownerStringRef, nameStringRef] <-
-//                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "tracePutField", "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V", false);
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "tracePutField", "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V", false);
                 // [..., objRef, value] <-
             }
 
