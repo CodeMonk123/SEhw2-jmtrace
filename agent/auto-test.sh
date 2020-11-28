@@ -22,7 +22,7 @@ mv testcase*.jar ../../../testcase/
 cd ../../../
 mvn package
 
-AGENT="target/jmtrace-agent-1.0-SNAPSHOT-jar-with-dependencies.jar"
+AGENT="target/jmtrace-agent-1.0-SNAPSHOT.jar"
 
 
 java -javaagent:${AGENT} -Xbootclasspath/p:${AGENT} -jar ./testcase/testcase1.jar

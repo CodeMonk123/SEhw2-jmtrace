@@ -1,5 +1,6 @@
 package cn.edu.nju.czh.jmtrace.core;
 
+import jdk.nashorn.internal.runtime.regexp.joni.constants.OPCode;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -87,9 +88,9 @@ public class MemoryTraceClassVisitor extends ClassVisitor {
             // Read a field.
             // Before: [..., objRef] <-
             // After : [..., value] <-
-            if (opcode == Opcodes.GETFIELD || opcode == Opcodes.GETSTATIC) {
+            if (opcode == Opcodes.GETFIELD) {
                 mv.visitInsn(Opcodes.DUP);
-                // [..., objRef] <-
+                // [..., objRef，objRef] <-
                 mv.visitLdcInsn(owner);
                 // [..., objRef, objRef, ownerStringRef] <-
                 mv.visitLdcInsn(name);
@@ -97,27 +98,49 @@ public class MemoryTraceClassVisitor extends ClassVisitor {
                 mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "traceGetField", "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V", false);
                 // [..., objRef] <-
             }
+
+            // Read a static property.
+            // Before: [...] <-
+            // After: [...,value] <-
+            if (opcode == Opcodes.GETSTATIC) {
+                mv.visitLdcInsn(owner);
+                // [..., ownerStringRef] <-
+                mv.visitLdcInsn(name);
+                // [..., ownerStringRef, nameStringRef] <-
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "traceGetStatic", "(Ljava/lang/String;Ljava/lang/String;)V", false);
+                // [...] <-
+            }
+
+
             // Write a field
             // Before: [...,objRef, value] <-
-            // Note: the value here is a index of the value in the constant pool, not the value itself.
+            // Note: We do not konw the type of the value
             // After: [...,]<-
-            if (opcode == Opcodes.PUTFIELD || opcode == Opcodes.PUTSTATIC) {
-                // [..., objRef, value] <-
-                mv.visitInsn(Opcodes.DUP2);
-                // [..., objRef, value, objRef, value] <-
-                mv.visitInsn(Opcodes.POP);
+            if (opcode == Opcodes.PUTFIELD) {
+//                mv.visitVarInsn(Opcodes.ALOAD, 0);
                 // [..., objRef, value, objRef] <-
-                mv.visitLdcInsn(owner);
+//                mv.visitLdcInsn(owner);
                 // [..., objRef, value, objRef, ownerStringRef] <-
-                mv.visitLdcInsn(name);
+//                mv.visitLdcInsn(name);
                 // [..., objRef, value, objRef, ownerStringRef, nameStringRef] <-
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "tracePutField", "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V", false);
+//                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "tracePutField", "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V", false);
                 // [..., objRef, value] <-
             }
 
-            super.visitFieldInsn(opcode, owner, name, descriptor);
-        }
+            // Write a static property
+            if (opcode == Opcodes.PUTSTATIC) {
+                // [..., value] <-
+                mv.visitLdcInsn(owner);
+                // [..., value ownerStringRef] <-
+                mv.visitLdcInsn(name);
+                // [..., value ownerStringRef nameStringRef] <-
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MemoryTraceUtils.class), "tracePutStatic", "(Ljava/lang/String;Ljava/lang/String;)V", false);
+                // [... value] <-
+            }
 
+            super.visitFieldInsn(opcode, owner, name, descriptor);
+
+        }
 
     }
 }
