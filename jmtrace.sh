@@ -20,5 +20,5 @@ if [ -z "$JAR_PACKAGE" ]; then
 fi
 
 
-AGENT="agent/target/jmtrace-agent-1.0-SNAPSHOT-jar-with-dependencies.jar"
+AGENT="agent/target/jmtrace-agent-1.0-SNAPSHOT.jar"
 java -javaagent:${AGENT} -Xbootclasspath/p:${AGENT} -jar ${JAR_PACKAGE}
