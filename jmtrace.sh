@@ -1,5 +1,5 @@
 #!/bin/bash
-
+AGENT="agent/target/jmtrace-agent-1.0-SNAPSHOT.jar"
 useage() {
     echo "useage:"
     echo "  jmtrace.sh [-j /PATH/TO/JAR]"
@@ -19,6 +19,4 @@ if [ -z "$JAR_PACKAGE" ]; then
     useage;
 fi
 
-
-AGENT="agent/target/jmtrace-agent-1.0-SNAPSHOT.jar"
-java -javaagent:${AGENT} -Xbootclasspath/p:${AGENT} -jar ${JAR_PACKAGE}
+java -javaagent:${AGENT}  -jar ${JAR_PACKAGE}
