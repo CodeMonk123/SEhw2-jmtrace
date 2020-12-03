@@ -30,7 +30,7 @@ public class MemoryTraceUtils {
         String id = toHexString(arrayRef.hashCode());
         stringBuilder.append(id);
         String arrayName = arrayRef.getClass().getCanonicalName();
-        stringBuilder.append(" ").append(arrayName.substring(0, arrayName.length() - 1));
+        stringBuilder.append(" ").append(arrayName, 0, arrayName.length() - 1);
         stringBuilder.append(index).append("]");
         return stringBuilder;
     }
@@ -68,6 +68,27 @@ public class MemoryTraceUtils {
 
     public static void tracePutField(Object objRef, String owner, String name) {
         StringBuilder stringBuilder = generateFieldInfo(objRef, owner, name);
+        stringBuilder.insert(0, "W ");
+        System.out.println(stringBuilder.toString());
+    }
+
+    private static StringBuilder generateStaticInfo(String owner, String name) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(Thread.currentThread().getId());
+        stringBuilder.append(" ");
+        stringBuilder.append(toHexString(System.identityHashCode(owner + name))).append(" ");
+        stringBuilder.append(owner.replace('/', '.')).append('.').append(name);
+        return stringBuilder;
+    }
+
+    public static void traceGetStatic(String owner, String name) {
+        StringBuilder stringBuilder = generateStaticInfo(owner, name);
+        stringBuilder.insert(0, "R ");
+        System.out.println(stringBuilder.toString());
+    }
+
+    public static void tracePutStatic(String owner, String name) {
+        StringBuilder stringBuilder = generateStaticInfo(owner, name);
         stringBuilder.insert(0, "W ");
         System.out.println(stringBuilder.toString());
     }
